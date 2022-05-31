@@ -1,0 +1,51 @@
+- hosts: localhost
+  tasks:
+    - name: install homebrew
+      shell: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    - name: check if homebrew in path
+      ansible.builtin.lineinfile:
+        path: /etc/paths
+        state: present
+        line: '/opt/homebrew/bin'
+      become: true
+      become_user: root
+
+    - name: homebrew casks
+      community.general.homebrew_cask:
+        name: "{{ item }}"
+      ignore_errors: yes
+      with_items:
+        - firefox
+        - iterm2
+        - slack
+        - vagrant
+        - virtualbox
+        - visual-studio-code
+        - docker
+        - spotify
+        - zoom
+        - whatsapp
+    - name: "homebrew packages"
+      ignore_errors: yes
+      community.general.homebrew:
+        name: [
+          'git',
+          'jq',
+          'npm',
+          'awscli',
+          "postgresql",
+          "rabbitmq",
+          "gh",
+          "terraform",
+          "minikube",
+          "docker-compose",          
+        ]
+    - name: install zsh
+      shell: sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+      args:
+        creates: "/Users/{{ lookup('env', 'USER') }}/.oh-my-zsh"
+
+    - name: set zsh as default shell
+      shell: chsh -s $(which zsh) {{ lookup('env', 'USER') }}
+      become: true
